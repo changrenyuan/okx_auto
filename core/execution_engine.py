@@ -4,6 +4,7 @@
 支持 Post-Only、IOC、TWAP 等订单类型
 """
 
+import os
 import asyncio
 import hmac
 import base64
@@ -28,9 +29,9 @@ class ExecutionEngine:
         self.order_queue = asyncio.Queue()
         self.running = False
         
-        # 网络延迟监控
+        # 网络延迟监控（从环境变量读取，默认 500ms 适合国内代理环境）
         self.latency_samples = []
-        self.max_latency_ms = 100  # 最大允许延迟（毫秒）
+        self.max_latency_ms = int(os.getenv("MAX_LATENCY_MS", "500"))
         self.kill_switch_enabled = True
         
         # 限流控制

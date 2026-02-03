@@ -3,6 +3,7 @@
 实时监控网络延迟、亏损幅度，自动熔断
 """
 
+import os
 import asyncio
 from typing import Optional
 from datetime import datetime
@@ -27,7 +28,8 @@ class RiskKillSwitch:
         # 熔断参数
         self.max_daily_loss_ratio = 0.05  # 最大日亏损 5%
         self.max_position_ratio = 0.5     # 最大仓位 50%
-        self.max_latency_ms = 100         # 最大网络延迟 100ms
+        # 网络延迟阈值（从环境变量读取，默认 500ms 适合国内代理环境）
+        self.max_latency_ms = int(os.getenv("MAX_LATENCY_MS", "500"))
         
         # 状态
         self.is_triggered = False
@@ -44,6 +46,9 @@ class RiskKillSwitch:
         self.monitor_task = None
         
         logger.info("🛡️  风险熔断系统初始化完成")
+        logger.info(f"   - 最大日亏损: {self.max_daily_loss_ratio * 100}%")
+        logger.info(f"   - 最大仓位: {self.max_position_ratio * 100}%")
+        logger.info(f"   - 最大网络延迟: {self.max_latency_ms}ms")
     
     async def start(self):
         """启动熔断监控"""
