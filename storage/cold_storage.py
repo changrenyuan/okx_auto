@@ -207,6 +207,12 @@ class ColdStorageLayer:
                 timestamp = trade.get("timestamp")
                 if isinstance(timestamp, str):
                     timestamp = pd.to_datetime(timestamp)
+                elif isinstance(timestamp, (int, float)):
+                    # Unix 时间戳转换为 datetime
+                    timestamp = pd.to_datetime(timestamp, unit='ms')
+                
+                if timestamp is None:
+                    continue
                 
                 date_str = timestamp.strftime("%Y-%m-%d")
                 

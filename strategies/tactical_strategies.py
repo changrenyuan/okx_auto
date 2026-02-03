@@ -63,13 +63,13 @@ class TacticalStrategies:
             inst_id = orderbook_data.get("inst_id", "")
 
             # 运行抢跑策略
-            await self.front_running.on_depth(inst_id, orderbook_data)
+            await self.front_running.on_orderbook(orderbook_data)
 
             # 运行挂墙策略
-            await self.wall_riding.on_depth(inst_id, orderbook_data)
+            await self.wall_riding.on_orderbook(orderbook_data)
             
             # 运行点差捕获策略
-            await self.spread_capturing.on_depth(inst_id, orderbook_data)
+            await self.spread_capturing.on_orderbook(orderbook_data)
         
         except Exception as e:
             logger.error(f"❌ 战术策略运行异常: {e}")
