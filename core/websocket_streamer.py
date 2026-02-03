@@ -75,6 +75,10 @@ class WebSocketStreamer:
         Args:
             private: 是否连接私有频道（需要签名）
         """
+        # 模拟盘必须使用私有频道（公共频道也需要认证）
+        if Config.TRADING_MODE == "paper":
+            private = True
+
         url = self.ws_private_url if private else self.ws_url
 
         try:
@@ -109,30 +113,35 @@ class WebSocketStreamer:
                 }]
             }
             
+            logger.info(f"🔐 发送认证消息: {auth_msg}")
             await self.ws.send(json.dumps(auth_msg))
-            logger.info("🔐 发送认证消息")
             
             # 等待认证响应
             response = await asyncio.wait_for(self.ws.recv(), timeout=10)
             data = json.loads(response)
             
+            logger.info(f"📥 认证响应: {data}")
+            
             if data.get("event") == "login" and data.get("code") == "0":
                 logger.info("✅ 认证成功")
             else:
                 logger.error(f"❌ 认证失败: {data}")
-                raise Exception("WebSocket 认证失败")
+                raise Exception(f"WebSocket 认证失败: {data}")
         
         except asyncio.TimeoutError:
             logger.error("❌ 认证超时")
             raise
     
     def _generate_sign(self, timestamp: str, method: str, request_path: str) -> str:
-        """生成签名（需要在 okx_client 中实现）"""
+        """生成签名"""
         import hmac
         import base64
         import hashlib
         
+        # 签名格式: timestamp + method + request_path
         message = timestamp + method + request_path
+        logger.debug(f"🔑 签名输入: {message}")
+        
         mac = hmac.new(
             bytes(Config.SECRET_KEY, encoding="utf8"),
             bytes(message, encoding="utf-8"),
