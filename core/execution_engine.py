@@ -85,13 +85,13 @@ class ExecutionEngine:
     ) -> Dict:
         """
         发送 HTTP 请求
-        
+
         Args:
             method: 请求方法
             path: 请求路径
             params: URL 参数
             body: 请求体
-        
+
         Returns:
             响应数据
         """
@@ -99,13 +99,14 @@ class ExecutionEngine:
         if self.kill_switch_enabled and self._check_kill_switch():
             logger.critical("🚨 Kill Switch 已触发，拒绝请求")
             raise Exception("Kill Switch triggered")
-        
+
         # 记录开始时间
         start_time = time.time()
-        
-        timestamp = str(int(time.time()))
+
+        # 使用 ISO 8601 格式的时间戳（OKX API 要求）
+        timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
         url = self.base_url + path
-        
+
         # 准备请求体
         body_str = json.dumps(body) if body else ""
         

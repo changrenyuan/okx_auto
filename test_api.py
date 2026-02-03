@@ -166,9 +166,10 @@ class OKXTestClient:
                     print(f"💰 余额详情:")
                     for detail in details:
                         ccy = detail.get("ccy")
-                        bal = detail.get("bal")
-                        avail = detail.get("availBal")
-                        if float(bal) > 0:
+                        bal = detail.get("bal", "0")
+                        avail = detail.get("availBal", "0")
+                        # 跳过余额为空或为0的币种
+                        if bal and float(bal) > 0:
                             print(f"   {ccy}: 总额 {bal}, 可用 {avail}")
 
                 return True
