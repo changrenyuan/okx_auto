@@ -60,9 +60,13 @@ class OKXTestClient:
         Returns:
             响应数据
         """
-        timestamp = str(int(time.time()))
+        # 使用 ISO 8601 格式的时间戳（OKX API 要求）
+        timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
         url = self.base_url + path
         body_str = json.dumps(body) if body else ""
+
+        # 打印时间戳（调试用）
+        print(f"⏰ 请求时间戳: {timestamp}")
 
         # 生成签名
         sign_str = self._sign(timestamp, method, path, body_str)
@@ -118,6 +122,24 @@ class OKXTestClient:
             result = self._request("GET", "/api/v5/public/time")
             if result.get("code") == "0":
                 print("✅ 服务器时间测试成功")
+
+                # 检查时间差
+                server_ts_ms = int(result["data"][0]["ts"])
+                local_ts_ms = int(time.time() * 1000)
+                time_diff_ms = abs(server_ts_ms - local_ts_ms)
+                time_diff_sec = time_diff_ms / 1000
+
+                print(f"\n⏰ 时间对比:")
+                print(f"   服务器时间: {server_ts_ms} ms ({datetime.fromtimestamp(server_ts_ms/1000)})")
+                print(f"   本地时间:   {local_ts_ms} ms ({datetime.fromtimestamp(local_ts_ms/1000)})")
+                print(f"   时间差:     {time_diff_sec:.2f} 秒")
+
+                if time_diff_sec > 30:
+                    print(f"⚠️  警告: 时间差超过 30 秒！请同步你的电脑时间")
+                    return False
+                else:
+                    print(f"✅ 时间差正常（{time_diff_sec:.2f} 秒）")
+
                 return True
             else:
                 print(f"❌ 服务器时间测试失败: {result.get('msg')}")
