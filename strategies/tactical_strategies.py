@@ -47,24 +47,24 @@ class TacticalStrategies:
         self.running = False
         
         logger.info("🎯 战术策略管理器初始化完成")
-    
+
     async def run(self):
         """运行所有策略"""
         if not self.kill_switch.is_safe():
             return
-        
+
         try:
             # 获取深度数据
-            orderbook_data = self.orderbook.get_orderbook()
-            
+            orderbook_data = self.orderbook.get_summary()
+
             if not orderbook_data:
                 return
-            
-            inst_id = orderbook_data.get("instId", "")
-            
+
+            inst_id = orderbook_data.get("inst_id", "")
+
             # 运行抢跑策略
             await self.front_running.on_depth(inst_id, orderbook_data)
-            
+
             # 运行挂墙策略
             await self.wall_riding.on_depth(inst_id, orderbook_data)
             
