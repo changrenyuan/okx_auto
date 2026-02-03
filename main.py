@@ -197,9 +197,6 @@ class GamblerHunterV2:
             # 处理逐笔成交
             if isinstance(data, list) and len(data) > 0:
                 for trade in data:
-                    # 更新特征
-                    self.features.update_trade(trade)
-                    
                     # 更新热存储（同步到内存）
                     trade_data = {
                         "price": float(trade.get("px", 0)),
@@ -209,7 +206,7 @@ class GamblerHunterV2:
                         "trade_id": trade.get("tradeId", "")
                     }
                     self.storage.add_trade(trade_data)
-                
+
                 # 运行策略
                 await self.strategies.run()
         
