@@ -21,14 +21,17 @@ class WebSocketStreamer:
         # 根据交易模式选择 WebSocket 地址
         if Config.TRADING_MODE == "paper":
             # 模拟盘地址
+            # 注意：模拟盘可能不支持公共频道，需要使用私有频道连接
             self.ws_url = "wss://wspap.okx.com:8443/ws/v5/public"
             self.ws_private_url = "wss://wspap.okx.com:8443/ws/v5/private"
-            logger.info("🧪 使用模拟盘 WebSocket 地址")
+            self.use_private_channel = True  # 模拟盘使用私有频道
+            logger.info("🧪 使用模拟盘 WebSocket 地址（私有频道）")
         else:
             # 实盘地址
             self.ws_url = "wss://ws.okx.com:8443/ws/v5/public"
             self.ws_private_url = "wss://ws.okx.com:8443/ws/v5/private"
-            logger.info("💼 使用实盘 WebSocket 地址")
+            self.use_private_channel = False  # 实盘使用公共频道
+            logger.info("💼 使用实盘 WebSocket 地址（公共频道）")
 
         self.ws: Optional[websockets.WebSocketClientProtocol] = None
         self.running = False

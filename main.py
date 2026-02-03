@@ -98,7 +98,9 @@ class GamblerHunterV2:
         
         # 连接 WebSocket
         try:
-            await self.streamer.connect()
+            # 模拟盘需要使用私有频道连接
+            use_private = Config.TRADING_MODE == "paper"
+            await self.streamer.connect(private=use_private)
             
             # 注册回调
             self.streamer.register_callback("orderbook", self._on_orderbook_data)
