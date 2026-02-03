@@ -109,10 +109,10 @@ class ExecutionEngine:
 
         # 准备请求体
         body_str = json.dumps(body) if body else ""
-        
+
         # 生成签名
         sign_str = self._sign(timestamp, method, path, body_str)
-        
+
         # 请求头
         headers = {
             "Content-Type": "application/json",
@@ -121,6 +121,10 @@ class ExecutionEngine:
             "OK-ACCESS-TIMESTAMP": timestamp,
             "OK-ACCESS-PASSPHRASE": Config.PASSPHRASE,
         }
+
+        # 模拟盘需要额外的请求头
+        if Config.TRADING_MODE == "paper":
+            headers["x-simulated-trading"] = "1"
         
         # 记录请求
         logger.log_api_request(method, path, params, body)

@@ -18,11 +18,21 @@ class WebSocketStreamer:
     
     def __init__(self):
         """初始化 WebSocket 流"""
-        self.ws_url = "wss://ws.okx.com:8443/ws/v5/public"
-        self.ws_private_url = "wss://ws.okx.com:8443/ws/v5/private"
+        # 根据交易模式选择 WebSocket 地址
+        if Config.TRADING_MODE == "paper":
+            # 模拟盘地址
+            self.ws_url = "wss://wspap.okx.com:8443/ws/v5/public"
+            self.ws_private_url = "wss://wspap.okx.com:8443/ws/v5/private"
+            logger.info("🧪 使用模拟盘 WebSocket 地址")
+        else:
+            # 实盘地址
+            self.ws_url = "wss://ws.okx.com:8443/ws/v5/public"
+            self.ws_private_url = "wss://ws.okx.com:8443/ws/v5/private"
+            logger.info("💼 使用实盘 WebSocket 地址")
+
         self.ws: Optional[websockets.WebSocketClientProtocol] = None
         self.running = False
-        
+
         # 回调函数
         self.callbacks: Dict[str, List[Callable]] = {
             "ticker": [],
@@ -32,10 +42,10 @@ class WebSocketStreamer:
             "account": [],
             "orders": [],
         }
-        
+
         # 订阅的频道
         self.subscriptions: List[str] = []
-        
+
         logger.info("🔌 WebSocket 流初始化完成")
     
     def register_callback(self, channel: str, callback: Callable):
