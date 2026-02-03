@@ -33,6 +33,9 @@ class WebSocketStreamer:
         self.ws: Optional[websockets.WebSocketClientProtocol] = None
         self.running = False
 
+        # 记录当前的连接类型（用于重连）
+        self.current_private = False
+
         # 回调函数
         self.callbacks: Dict[str, List[Callable]] = {
             "ticker": [],
@@ -65,18 +68,19 @@ class WebSocketStreamer:
     async def connect(self, private: bool = False):
         """
         连接 WebSocket
-        
+
         Args:
             private: 是否连接私有频道（需要签名）
         """
         url = self.ws_private_url if private else self.ws_url
-        
+
         try:
             logger.info(f"🔗 连接 WebSocket: {url}")
             self.ws = await websockets.connect(url)
+            self.current_private = private  # 记录连接类型
             self.running = True
             logger.info("✅ WebSocket 连接成功")
-            
+
             # 如果是私有频道，需要认证
             if private:
                 await self._authenticate()
@@ -253,24 +257,24 @@ class WebSocketStreamer:
     async def _reconnect(self):
         """重新连接"""
         logger.info("🔄 开始重连...")
-        
+
         # 等待一段时间
         await asyncio.sleep(Config.WS_RECONNECT_DELAY)
-        
+
         try:
             # 关闭旧连接
             if self.ws:
                 await self.ws.close()
-            
-            # 重新连接
-            await self.connect(private=True)
-            
+
+            # 重新连接（使用之前记录的连接类型）
+            await self.connect(private=self.current_private)
+
             # 重新订阅频道
             if self.subscriptions:
                 await self.subscribe(self.subscriptions)
-            
+
             logger.info("✅ 重连成功")
-        
+
         except Exception as e:
             logger.error(f"❌ 重连失败: {e}")
     

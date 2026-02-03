@@ -44,14 +44,26 @@ class ExecutionEngine:
         if self.running:
             logger.warning("⚠️  执行引擎已在运行")
             return
-        
+
         logger.info("🚀 启动执行引擎...")
-        self.session = aiohttp.ClientSession()
+
+        # 读取代理环境变量
+        import os
+        http_proxy = os.getenv("HTTP_PROXY")
+        https_proxy = os.getenv("HTTPS_PROXY")
+
+        # 配置代理（trust_env=True 会自动读取环境变量）
+        self.session = aiohttp.ClientSession(trust_env=True)
+
+        if http_proxy or https_proxy:
+            proxy = https_proxy or http_proxy
+            logger.info(f"🌐 检测到代理配置: {proxy}")
+
         self.running = True
-        
+
         # 启动订单处理任务
         asyncio.create_task(self._process_orders())
-        
+
         logger.info("✅ 执行引擎已启动")
     
     async def stop(self):
