@@ -92,8 +92,8 @@ class WebSocketStreamer:
     async def _authenticate(self):
         """私有频道认证"""
         try:
-            # 生成登录消息
-            timestamp = str(int(datetime.now().timestamp()))
+            # 生成登录消息（使用毫秒级时间戳）
+            timestamp = str(int(datetime.now().timestamp() * 1000))
             sign = self._generate_sign(timestamp, "GET", "/users/self/verify")
             
             auth_msg = {
