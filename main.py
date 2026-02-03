@@ -34,7 +34,26 @@ class GamblerHunterV2:
     def __init__(self):
         """初始化系统"""
         self.config = Config
-        
+
+        # 显示交易模式警告
+        if Config.TRADING_MODE == "live":
+            logger.critical("=" * 60)
+            logger.critical("🚨🚨🚨 实盘交易模式 🚨🚨🚨")
+            logger.critical("=" * 60)
+            logger.critical("⚠️  当前将使用真实资金进行交易！")
+            logger.critical("⚠️  请确保：")
+            logger.critical("   1. 已充分测试策略")
+            logger.critical("   2. 风险参数已设置")
+            logger.critical("   3. 已设置止损")
+            logger.critical("   4. 资金在可承受范围内")
+            logger.critical("=" * 60)
+        else:
+            logger.info("=" * 60)
+            logger.info("🧪 模拟交易模式")
+            logger.info("=" * 60)
+            logger.info("✓ 当前为模拟交易，不会使用真实资金")
+            logger.info("=" * 60)
+
         # 存储管理器（三层存储架构）
         self.storage = StorageManager(
             redis_host="localhost",
@@ -42,7 +61,7 @@ class GamblerHunterV2:
             data_dir="data/historical",
             max_trades=1000
         )
-        
+
         # 核心模块
         self.execution = ExecutionEngine()
         self.kill_switch = RiskKillSwitch(self.execution)

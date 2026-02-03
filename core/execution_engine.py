@@ -193,29 +193,47 @@ class ExecutionEngine:
     async def _execute_order(self, order: Dict):
         """
         执行订单
-        
+
         Args:
             order: 订单信息
         """
         try:
             logger.log_order("place", order)
-            
-            # 发送订单请求
+
+            # 检查是否为模拟交易模式
+            from utils.config import Config
+            if Config.TRADING_MODE == "paper":
+                # 模拟交易：只记录日志，不发送真实订单
+                logger.info(f"🧪 [模拟交易] 订单已模拟提交（不会真实下单）")
+                logger.info(f"   产品: {order.get('instId')}")
+                logger.info(f"   方向: {order.get('side')}")
+                logger.info(f"   类型: {order.get('ordType')}")
+                logger.info(f"   数量: {order.get('sz')}")
+                logger.info(f"   价格: {order.get('px', '市场价')}")
+
+                # 返回模拟订单 ID
+                import uuid
+                mock_order_id = f"PAPER-{uuid.uuid4().hex[:16]}"
+                logger.info(f"   订单ID: {mock_order_id}")
+                return mock_order_id
+
+            # 实盘交易：发送真实订单
+            logger.warning(f"⚠️  [实盘交易] 将使用真实资金下单！")
             response = await self._request("POST", "/api/v5/trade/order", body=order)
-            
+
             if response.get("code") == "0" and response.get("data"):
                 order_data = response["data"][0]
                 order_id = order_data["ordId"]
                 logger.info(f"✅ 订单已提交: {order_id}")
-                
+
                 # 返回订单 ID
                 return order_id
-            
+
             else:
                 error_msg = response.get("msg", "未知错误")
                 logger.error(f"❌ 下单失败: {error_msg}")
                 return None
-        
+
         except Exception as e:
             logger.error(f"❌ 执行订单异常: {e}")
             return None
@@ -605,29 +623,47 @@ class ExecutionEngine:
     async def _execute_order(self, order: Dict):
         """
         执行订单
-        
+
         Args:
             order: 订单信息
         """
         try:
             logger.log_order("place", order)
-            
-            # 发送订单请求
+
+            # 检查是否为模拟交易模式
+            from utils.config import Config
+            if Config.TRADING_MODE == "paper":
+                # 模拟交易：只记录日志，不发送真实订单
+                logger.info(f"🧪 [模拟交易] 订单已模拟提交（不会真实下单）")
+                logger.info(f"   产品: {order.get('instId')}")
+                logger.info(f"   方向: {order.get('side')}")
+                logger.info(f"   类型: {order.get('ordType')}")
+                logger.info(f"   数量: {order.get('sz')}")
+                logger.info(f"   价格: {order.get('px', '市场价')}")
+
+                # 返回模拟订单 ID
+                import uuid
+                mock_order_id = f"PAPER-{uuid.uuid4().hex[:16]}"
+                logger.info(f"   订单ID: {mock_order_id}")
+                return mock_order_id
+
+            # 实盘交易：发送真实订单
+            logger.warning(f"⚠️  [实盘交易] 将使用真实资金下单！")
             response = await self._request("POST", "/api/v5/trade/order", body=order)
-            
+
             if response.get("code") == "0" and response.get("data"):
                 order_data = response["data"][0]
                 order_id = order_data["ordId"]
                 logger.info(f"✅ 订单已提交: {order_id}")
-                
+
                 # 返回订单 ID
                 return order_id
-            
+
             else:
                 error_msg = response.get("msg", "未知错误")
                 logger.error(f"❌ 下单失败: {error_msg}")
                 return None
-        
+
         except Exception as e:
             logger.error(f"❌ 执行订单异常: {e}")
             return None

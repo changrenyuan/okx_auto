@@ -29,6 +29,7 @@ class Config:
     LOG_FILE: str = os.getenv("LOG_FILE", "logs/okx_quant.log")
     
     # ========== 交易配置 ==========
+    TRADING_MODE: str = os.getenv("TRADING_MODE", "paper")  # paper=模拟交易, live=实盘交易
     MAX_POSITION_SIZE: float = float(os.getenv("MAX_POSITION_SIZE", "1000"))
     MAX_DAILY_LOSS: float = float(os.getenv("MAX_DAILY_LOSS", "0.05"))  # 5%
     LEVERAGE_LIMIT: int = int(os.getenv("LEVERAGE_LIMIT", "20"))
@@ -53,20 +54,28 @@ class Config:
     def validate(cls) -> bool:
         """验证配置是否有效"""
         logger.info("🔍 验证配置...")
-        
+
+        # 显示交易模式警告
+        if cls.TRADING_MODE == "live":
+            logger.critical("🚨🚨🚨 警告：当前模式为实盘交易（LIVE）！")
+            logger.critical("🚨🚨🚨 将使用真实资金进行交易！")
+        else:
+            logger.info("🧪 当前模式为模拟交易（PAPER），不会进行真实交易")
+
         if not cls.API_KEY or cls.API_KEY == "your-api-key-here":
             logger.error("❌ API_KEY 未配置，请在 .env 文件中设置")
             return False
-        
+
         if not cls.SECRET_KEY or cls.SECRET_KEY == "your-secret-key-here":
             logger.error("❌ SECRET_KEY 未配置，请在 .env 文件中设置")
             return False
-        
+
         if not cls.PASSPHRASE or cls.PASSPHRASE == "your-passphrase-here":
             logger.error("❌ PASSPHRASE 未配置，请在 .env 文件中设置")
             return False
-        
+
         logger.info("✓ 配置验证通过")
+        logger.info(f"  - 交易模式: {'实盘 (LIVE)' if cls.TRADING_MODE == 'live' else '模拟 (PAPER)'}")
         logger.info(f"  - API URL: {cls.BASE_URL}")
         logger.info(f"  - 最大仓位: {cls.MAX_POSITION_SIZE}")
         logger.info(f"  - 最大日亏损: {cls.MAX_DAILY_LOSS * 100}%")
@@ -74,7 +83,7 @@ class Config:
         logger.info(f"  - 爆仓单捕猎: {'启用' if cls.ENABLE_LIQUIDATION_HUNTING else '禁用'}")
         logger.info(f"  - 资金费率套利: {'启用' if cls.ENABLE_FUNDING_ARBITRAGE else '禁用'}")
         logger.info(f"  - 做市商策略: {'启用' if cls.ENABLE_MARKET_MAKING else '禁用'}")
-        
+
         return True
     
     @classmethod
