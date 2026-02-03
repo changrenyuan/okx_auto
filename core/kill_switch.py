@@ -58,12 +58,25 @@ class RiskKillSwitch:
         
         logger.info("🚀 启动风险熔断系统...")
         
-        # 获取初始余额
-        balance_data = await self.execution.get_balance()
-        if balance_data:
-            self.daily_start_balance = float(balance_data["details"][0]["eq"])
-            self.current_balance = self.daily_start_balance
-            logger.info(f"📊 初始余额: {self.daily_start_balance}")
+        # 获取初始余额（带超时保护）
+        try:
+            balance_data = await asyncio.wait_for(self.execution.get_balance(), timeout=10)
+            if balance_data and "details" in balance_data and len(balance_data["details"]) > 0:
+                self.daily_start_balance = float(balance_data["details"][0]["eq"])
+                self.current_balance = self.daily_start_balance
+                logger.info(f"📊 初始余额: {self.daily_start_balance}")
+            else:
+                logger.warning("⚠️  无法获取初始余额，使用默认值 0")
+                self.daily_start_balance = 0.0
+                self.current_balance = 0.0
+        except asyncio.TimeoutError:
+            logger.warning("⚠️  获取初始余额超时，使用默认值 0")
+            self.daily_start_balance = 0.0
+            self.current_balance = 0.0
+        except Exception as e:
+            logger.warning(f"⚠️  获取初始余额失败: {e}，使用默认值 0")
+            self.daily_start_balance = 0.0
+            self.current_balance = 0.0
         
         self.running = True
         self.monitor_task = asyncio.create_task(self._monitor_loop())
@@ -109,10 +122,15 @@ class RiskKillSwitch:
     
     async def _update_data(self):
         """更新监控数据"""
-        # 更新余额
-        balance_data = await self.execution.get_balance()
-        if balance_data:
-            self.current_balance = float(balance_data["details"][0]["eq"])
+        # 更新余额（带超时）
+        try:
+            balance_data = await asyncio.wait_for(self.execution.get_balance(), timeout=5)
+            if balance_data and "details" in balance_data and len(balance_data["details"]) > 0:
+                self.current_balance = float(balance_data["details"][0]["eq"])
+        except asyncio.TimeoutError:
+            logger.debug("⚠️  获取余额超时，跳过此次更新")
+        except Exception as e:
+            logger.debug(f"⚠️  获取余额失败: {e}")
         
         # 更新延迟
         avg_latency = self.execution.get_avg_latency()
